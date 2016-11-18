@@ -1,0 +1,151 @@
+﻿@model Vui.Models.Post
+@using Microsoft.AspNet.Identity;
+
+@using (Ajax.BeginForm(
+    "LikeOrCommentInModal",
+    "Home",
+    new AjaxOptions
+    {
+        UpdateTargetId = "PictureModal",
+        HttpMethod = "POST",
+        InsertionMode = InsertionMode.Replace,
+        OnSuccess = "UpdateLikeAndCommentOnMainPage("+ViewBag.target+")"
+    }    
+    ))
+{
+<div id="PictureModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">@Model.Title</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row media">
+                    <div class="col-md-offset-1 col-md-8">
+                        <img class="img-responsive" src="@Model.url" />                       
+                            <input type="hidden" name="postId" value="@Model.Id" />  
+                            <input type="hidden" name="target" value="@ViewBag.target" />                                                      
+                            @if (@Model.LikeActivities.Where(c => c.ApplicationUserId == User.Identity.GetUserId()).Count() == 0)
+                            {
+                                <input id="btnLikeInModal" type="submit" name="like_com" class="modal-page-like btn-xs btn-primary" value="Like" />
+                            }
+                            else if (@Model.LikeActivities.Where(c => c.ApplicationUserId == User.Identity.GetUserId())
+                            .First().Like)
+                            {
+                                <input id="btnLikeInModal" type="submit" name="like_com" class="modal-page-like btn-xs btn-primary" value="UnLike" />
+                            }
+                            else
+                            {
+                                <input id="btnLikeInModal" type="submit" name="like_com" class="modal-page-like btn-xs btn-primary" value="Like" />
+                            }
+                            <a id="anchorNumberOfLikes" href="#">@Model.TotalLikes (likes)</a>
+                            <a id="anchorCommentInModal" class="modal-page-comment">@Model.TotalComments (comments)</a>
+                            <textarea name="UserComment" class="height-max-height-60" maxlength="1000"
+                                        placeholder="comment here ..." style="min-width: 100%;"></textarea>
+                            <br />
+                            <input type="submit" name="like_com" class="btn-xs btn-primary" value="Comment" />                                                    
+                    </div>
+                </div>
+                <div class="row media">
+                    @foreach (var comment in @Model.CommentActivities)
+                    {
+                        <div class="row">
+                            <div class="col-md-offset-1 col-md-1">
+                                <a class="media-left" href="#">
+                                    <img class="img-responsive" src="@comment.User.Avatar" />
+                                </a>
+                            </div>
+                            <div class="col-md-offset-2">
+                                <h5 class="media-heading user_name">
+                                    <strong>@Model.User.Firstname  @Model.User.Lastname </strong>
+                                    <small>(@comment.TotalLikes likes - 5 days ago)</small>
+                                </h5>
+                                @comment.Comment
+                            </div>
+                            <div class="col-md-offset-2">
+                                <small>
+                                    @if (comment.LikeActivities!= null && comment.LikeActivities.Where(c => c.CommentId == comment.CommentId).Count() == 0)
+                                    {
+                                        <a href="@Url.Action("likecomment", "Comment" ,
+                                                       new
+                                                       {
+                                                       sortorder=ViewBag.SortByTitle,
+                                                       commentid=comment.CommentId,
+                                                       postid=Model.Id,
+                                                       userid=Model.User.Id
+                                                       })">Like</a>
+                                    }
+                                    else if (comment.LikeActivities != null && comment.LikeActivities.Where(c => c.CommentId == comment.CommentId)
+                                    .SingleOrDefault().Like)
+                                    {
+                                        <a href="@Url.Action("unlikecomment", "Comment" ,
+                                                       new
+                                                       {
+                                                       sortorder=ViewBag.SortByTitle,
+                                                       commentid=comment.CommentId,
+                                                       postid=Model.Id,
+                                                       })">UnLike</a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("likecomment", "Comment" ,
+                                                       new
+                                                       {
+                                                       sortorder=ViewBag.SortByTitle,
+                                                       commentid=comment.CommentId,
+                                                       postid=Model.Id,
+                                                       })">Like</a>
+                                    }
+                                    -
+                                    <a id="replyBox">Reply</a>
+                                </small>
+                                <div id="replyText" class="hidden">
+                                    <textarea name="UserComment" class="height-max-height-60" maxlength="1000"
+                                              placeholder="reply here ..." style="min-width: 100%;"></textarea>
+                                    <br />
+                                    <input type="submit" name="like_com" class="btn-xs btn-primary" value="Reply" />
+                                </div>
+                            </div>
+                        </div>
+                        if (comment.ReplyCommentActivities !=null && comment.ReplyCommentActivities.Count() > 0)
+                        {
+                            foreach (var reply in comment.ReplyCommentActivities)
+                            {
+
+                                <div class="row col-md-offset-1">
+                                    <div class="col-md-offset-1 col-md-1">
+                                        <a class="media-left" href="#">
+                                            <img class="img-responsive" src="@reply.User.Avatar" />
+                                        </a>
+                                    </div>
+                                    <div class="col-md-offset-2">
+                                        <h4 class="media-heading user_name">@reply.User.Firstname  @reply.User.Lastname - <small>5 days ago</small></h4>
+                                        <a>&#64;@Model.User.Firstname @Model.User.Lastname: </a>@reply.Comment
+
+                                    </div>
+                                    <div class="col-md-offset-2">
+                                        <small>
+                                            <a href="@Url.Action("likecomment", "Comment" ,
+                                                           new { sortorder=ViewBag.SortByTitle })">Like</a> -
+                                            <a href="">Reply</a>
+                                        </small>
+                                        <div>
+                                            <textarea name="UserComment" class="height-max-height-60" maxlength="1000"
+                                                      placeholder="comment here ..." style="min-width: 100%;"></textarea>
+                                            <br />
+                                            <input type="submit" name="like_com" class="btn-xs btn-primary" value="Reply" />
+                                        </div>
+
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">              
+            </div>
+        </div>
+    </div>
+</div>
+}

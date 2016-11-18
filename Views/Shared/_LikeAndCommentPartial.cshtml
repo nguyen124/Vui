@@ -1,0 +1,44 @@
+﻿@model Vui.Models.Post
+@using Microsoft.AspNet.Identity;
+<div id="ajaxReplace@{@ViewData["counter"]}">
+    @if (@Model.LikeActivities.Where(c => c.ApplicationUserId == User.Identity.GetUserId()).Count() == 0)
+    {
+        <input id="btnLike@{@ViewData["counter"]}" type="submit" name="like_com" class="btn-xs btn-primary" value="Like" />
+    }
+    else if (@Model.LikeActivities.Where(c => c.ApplicationUserId == User.Identity.GetUserId())
+       .First().Like)
+    {
+        <input id="btnLike@{@ViewData["counter"]}" type="submit" name="like_com" class="btn-xs btn-primary" value="UnLike" />
+    }
+    else
+    {
+        <input id="btnLike@{@ViewData["counter"]}" type="submit" name="like_com" class="btn-xs btn-primary" value="Like" />
+    }
+
+    <a id="anchorNumberOfLikes@{@ViewData["counter"]}" href="#">@Model.TotalLikes (likes)</a>
+    @Ajax.ActionLink(@Model.TotalComments + " (comments)",
+                               "ViewComment",
+                               "Home",
+                               new
+                               {
+                                   postId = @Model.Id,
+                                   target = @ViewData["counter"],
+                               },
+                               new AjaxOptions
+                               {
+                                   HttpMethod = "GET",
+                                   InsertionMode = InsertionMode.Replace,
+                                   UpdateTargetId = "PictureModal",
+                                   OnSuccess = "PopUpModal"
+                               },
+                               new
+                               {
+                                   @class = "PictureModalLink",
+                                   id = "anchorComment" + ViewData["counter"]
+                               }
+                            )  
+    <textarea name="UserComment" class="height-max-height-60" maxlength="1000"
+              placeholder="comment here ..." style="min-width: 100%;"></textarea>
+    <br />                        
+    <input type="submit" name="like_com" class="btn-xs btn-primary" value="Comment" />
+</div>

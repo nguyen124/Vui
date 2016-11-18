@@ -1,0 +1,45 @@
+﻿@model PagedList.IPagedList<Vui.Models.Post>
+@using PagedList.Mvc;
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Title = "Index";
+}
+<div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle margin-top-10" type="button" data-toggle="dropdown">
+        Sort By
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        <li><a href="@Url.Action("Index", "Post", new { sortOrder = ViewBag.SortByTitle })">Title</a></li>
+        <li><a href="@Url.Action("Index", "Post", new { sortOrder = ViewBag.SortByDate })">Date</a></li>
+        <li><a href="@Url.Action("Index", "Post", new { sortOrder = ViewBag.SortByLike})">Like</a></li>
+        <li><a href="@Url.Action("Index", "Post", new { sortOrder = ViewBag.SortByComment })">Comment</a></li>
+    </ul>
+</div>
+@if (Model != null)
+{
+    int i = 0;
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            if (item != null)
+            {
+                Html.RenderPartial("_PictureModal", item, new ViewDataDictionary { { "controller", "Post" },{"counter",i} });
+                i++;
+            }
+        }
+
+    </div>
+
+    int page = Model.PageCount ;
+    if(page <Model.PageCount){
+        page = 0;
+    }else{
+        page = Model.PageNumber;
+    }
+    <text>Page</text> @page <text>of</text> @Model.PageCount
+
+    Html.PagedListPager(Model, p => Url.Action("Index", "Post",
+        new { p, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }));
+}
+<br />

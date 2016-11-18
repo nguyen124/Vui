@@ -1,0 +1,93 @@
+﻿@using Vui.Models
+@model ModifyAccountViewModel
+@{
+    ViewBag.Title = "Manage User Account Information";
+}
+
+<h2>@ViewBag.Title.</h2>
+
+@using (Html.BeginForm("UpdateInfo", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form", enctype = "multipart/form-data" }))
+{  
+    @Html.AntiForgeryToken()    
+    <h4>User<input class="text-info" border="0" name="UserId" value="@Request.Params["UserId"]" /></h4>
+    <div class="form-group">
+        <img class="img-responsive row-height-150" src="@Request.Params["Avatar"]" />
+        <input class="btn" type="file" name="FileUpload" />
+    </div>
+    <hr />
+    @Html.ValidationSummary("", new { @class = "text-danger" })
+    <div class="form-group">
+        @Html.LabelFor(m => m.Firstname, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Firstname, new
+       {
+           @class = "form-control",
+           Value = Request.Params["Firstname"]
+       })
+        </div>
+        @Html.LabelFor(m => m.Lastname, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Lastname, new
+       {
+           @class = "form-control",
+           Value = Request.Params["Lastname"]
+       })
+        </div>
+        @Html.LabelFor(m => m.Email, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Email, new
+       {
+           @class = "form-control",
+           Value = Request.Params["Email"]
+       })
+        </div>
+
+        @Html.LabelFor(m => m.Active, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            <select class="form-control" name="Active">
+                @if (Request.Params["LockoutEnable"]=="True")
+                {
+                    <option selected>ON</option>
+                }
+                else
+                {
+                    <option selected>OFF</option>
+                }
+            </select>
+        </div>
+        @Html.LabelFor(m => m.Roles, new { @class = "col-md-2 control-label" })
+        <div class="form-group col-md-10">
+            @if (Request.Params["RoleNames"].Contains("Admin"))
+            {
+                <input type="checkbox" checked name="AdminRole" value="Admin" /><a>Admin<br /></a>
+            }
+            else
+            {
+                <input type="checkbox" name="AdminRole" value="Admin" /><a>Admin<br /></a>
+            }
+            @if (Request.Params["RoleNames"].Contains("Mod"))
+            {
+                <input type="checkbox" checked name="ModRole" value="Mod" /><a>Mod<br /></a>
+            }
+            else
+            {
+                <input type="checkbox" name="ModRole" value="Mod" /><a>Mod<br /></a>
+            }
+            @if (Request.Params["RoleNames"].Contains("User"))
+            {
+                <input type="checkbox" checked name="UserRole" value="User" /><a>User<br /></a>
+            }
+            else
+            {
+                <input type="checkbox" name="UserRole" value="User" /><a>User<br /></a>
+            }
+
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Cancle" name="SubmitBtn" class="btn btn-default" />
+                <input type="submit" value="Update" name="SubmitBtn"  class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}

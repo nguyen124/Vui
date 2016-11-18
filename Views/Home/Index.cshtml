@@ -1,0 +1,111 @@
+﻿@model PagedList.IPagedList<Vui.Models.Post>
+@using PagedList.Mvc;
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Controller = "Home";
+}
+
+<div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle margin-top-10" type="button" data-toggle="dropdown">
+        Sort By
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        <li><a href="@Url.Action("Index", "Home", new { sortOrder = ViewBag.SortByTitle })">Title</a></li>
+        <li><a href="@Url.Action("Index", "Home", new { sortOrder = ViewBag.SortByDate })">Date</a></li>
+        <li><a href="@Url.Action("Index", "Home", new { sortOrder = ViewBag.SortByLike})">Like</a></li>
+        <li><a href="@Url.Action("Index", "Home", new { sortOrder = ViewBag.SortByComment })">Comment</a></li>
+    </ul>
+</div>
+
+@if (Model != null)
+{
+    int i = 0;
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            if (item != null)
+            {
+                //Html.RenderPartial("_PictureModal", item, new ViewDataDictionary { { "controller", "Home" }, { "counter", i } });
+                
+                <div class="col-md-4">
+                    @Html.DisplayFor(modelItem => item.Title)
+                    <img class="img-responsive height-300" src="@item.url" />
+                    @using (Ajax.BeginForm(
+                        "LikeOrComment", 
+                        "Home",                        
+                        new AjaxOptions { 
+                            UpdateTargetId = "ajaxReplace" + i, 
+                            HttpMethod = "POST",
+                            InsertionMode = InsertionMode.Replace,
+                            OnSuccess = ""}
+                    ))
+                    {                        
+                        <input type="hidden" name="postId" value="@item.Id" />
+                        <input type="hidden" name="sortOrder" value="@ViewBag.CurrentSort" />
+                        <input type="hidden" name="pageNo" value="@ViewBag.CurrentPage" />
+                        <input type="hidden" name="counter" value="@i"/>
+                        <div id="ajaxReplace@{@i}">
+                            @if (item.LikeActivities.Where(c => c.ApplicationUserId == User.Identity.GetUserId()).Count() == 0)
+                            {
+                                <input id="btnLike@{@i}" type="submit" name="like_com" class="btn-xs btn-primary" value="Like" />
+                            }
+                            else if (item.LikeActivities.Where(c => c.ApplicationUserId == User.Identity.GetUserId())
+                                .First().Like)
+                            {
+                                <input id="btnLike@{@i}" type="submit" name="like_com" class="btn-xs btn-primary" value="UnLike" />
+                            }
+                            else
+                            {
+                                <input id="btnLike@{@i}" type="submit" name="like_com" class="btn-xs btn-primary" value="Like" />
+                            }
+
+                            <a id="anchorNumberOfLikes@{@i}" href="#">@item.TotalLikes (likes)</a>
+                            @Ajax.ActionLink(@item.TotalComments + " (comments)",
+                               "ViewComment",
+                               "Home",
+                               new { 
+                                   postId = @item.Id,
+                                   target = @i,
+                               },
+                               new AjaxOptions
+                               {
+                                   HttpMethod = "GET",
+                                   InsertionMode = InsertionMode.Replace,
+                                   UpdateTargetId = "PictureModal",
+                                   OnSuccess = "PopUpModal"
+                               },
+                               new { 
+                                   @class = "PictureModalLink", 
+                                   id = "anchorComment"+i
+                               }
+                            )
+                            <textarea name="UserComment" class="height-max-height-60" maxlength="1000"
+                                      placeholder="comment here ..." style="min-width: 100%;"></textarea>
+                            <br /> 
+                            <input type="submit" name="like_com" class="btn-xs btn-primary" value="Comment" />
+                        </div>
+                    }
+                    
+                </div>
+                i++;
+            };
+        }
+        <div class="modal" id="PictureModal" tabindex="-1">
+          
+        </div>
+    </div>
+        int page = Model.PageCount;
+        if (page < Model.PageCount)
+        {
+            page = 0;
+        }
+        else
+        {
+            page = Model.PageNumber;
+        }
+        <text>Page</text> @page <text>of</text> @Model.PageCount
+
+        Html.PagedListPager(Model, p => Url.Action("Index",
+            new { p, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }));
+}
